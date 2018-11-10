@@ -1,0 +1,7 @@
+{"topic":"edm-ui-click","uuid":"24d9ab20-e458-11e8-9790-af11e3b38e62","event_timestamp":1541792811040,"properties":{"button_id":"the-camper's-kit","description":"button click"}}
+
+{"topic":"edm-ui-click","uuid":"076b07f0-e458-11e8-a4d9-374c7c913678","event_timestamp":1541792765960,"properties":{"button_id":"areopress-coffee-maker","description":"button click"}}
+
+{"topic":"edm-ui-pageload","uuid":"24d9ab20-e458-11e8-9790-af11e3b38e62","event_timestamp":1541792786146,"properties":{"user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1","description":"fix coffee page page loaded","url":"https://edm-ui.herokuapp.com"}}
+
+{"topic":"edm-ui-pageload","uuid":"b59f2c10-e459-11e8-9408-b758fd3d7d79","event_timestamp":1541793458521,"properties":{"user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36","description":"fix coffee page page loaded","url":"https://edm-ui.herokuapp.com"}}

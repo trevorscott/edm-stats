@@ -4,9 +4,13 @@ const express    = require('express');
 const app        = express();
 const URL        = require('url');
 const fs         = require('fs');
+const { Pool, Client } = require('pg');
+const parseDbUrl       = require('parse-database-url');
 
 const PORT       = process.env.PORT || 5002;
 const nodeEnv    = process.env.NODE_ENV || 'development';
+const sslFlag = (nodeEnv == "development") ? false : true;
+
 
 const currentPath  = process.cwd();
 
@@ -26,6 +30,19 @@ if (!fs.existsSync('tmp/env/KAFKA_CLIENT_CERT')) {
 if (!fs.existsSync('tmp/env/KAFKA_CLIENT_CERT_KEY')) {
 	throw new Error('KAFKA_CLIENT_CERT_KEY has not been written to file. Try executing the .profile script.');
 }
+
+//Postgres Config
+const dbConfig = parseDbUrl(process.env["DATABASE_URL"]);
+
+// Connect to postgres
+const pool = new Pool({
+  user: dbConfig.user,
+  host: dbConfig.host,
+  database: dbConfig.database,
+  password: dbConfig.password,
+  port: dbConfig.port,
+  ssl: sslFlag
+})
 
 // Kafka Config
 // For multi-tenant kafka on heroku, we must prefix each topic
@@ -96,12 +113,36 @@ consumer
   })
   .on('data', function(data) {
     const message = data.value.toString()
-    console.log(message, `Offset: ${data.offset}`, `partition: ${data.partition}`, `consumerId: edm/${process.env.DYNO || 'localhost'}`);
+    const json = JSON.parse(message);
     //track stats here
     // 1. how many times has the page been loaded?
     // 1. how many times has a button been clicked?
     // 1. what are the most popular buttons?
-    consumer.commitMessage(data);
+    switch (json.topic) {
+    	case 'edm-ui-click':
+			const clickEventSql = 'INSERT INTO button_click(uuid,button_id,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
+			const clickEventValues = [json.uuid,json.properties.button_id,json.event_timestamp];
+			pool.query(clickEventSql, clickEventValues)
+    		  .then(pgResponse => {
+			    console.log("button click event inserted");
+			    consumer.commitMessage(data);
+			  })
+			  .catch(error =>{
+			    console.error(error.stack);
+			  });
+			  break;
+		case 'edm-ui-pageload':
+			const loadEventSql = 'INSERT INTO page_load(uuid,user_agent,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
+			const loadEventValues = [json.uuid,json.properties.user_agent,json.event_timestamp];
+			pool.query(loadEventSql, loadEventValues)
+			  .then(pgResponse => {
+			    consumer.commitMessage(data);
+			  })
+			  .catch(error =>{
+			    console.error(error.stack)
+			  }); 
+			  break;
+    }
   })
   .on('event.log', function(log) {
     console.log(log);
@@ -116,7 +157,7 @@ consumer
 // Server
 //
 
-server.listen(PORT, function () {
+app.listen(PORT, function () {
   console.log(`Listening on port ${PORT}`);
 });
 

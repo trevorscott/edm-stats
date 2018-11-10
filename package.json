@@ -4,12 +4,15 @@
   "description": "Records stats about kafka messages produced by edm-ui / edm-relay",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "author": "Trevor Scott",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^6.1.0",
     "express": "^4.16.4",
-    "node-rdkafka": "git://github.com/profit-strategies/node-rdkafka.git#a21f7791b55c78a0b08a15b0b2fa66c7b25db5db"
+    "node-rdkafka": "git://github.com/profit-strategies/node-rdkafka.git#a21f7791b55c78a0b08a15b0b2fa66c7b25db5db",
+    "parse-database-url": "^0.3.0",
+    "pg": "^7.6.1"
   }
 }
