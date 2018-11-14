@@ -1,7 +1,6 @@
 require('dotenv').config();
 const Kafka      = require('node-rdkafka');
 const express    = require('express');
-const app        = express();
 const URL        = require('url');
 const fs         = require('fs');
 const { Pool, Client } = require('pg');
@@ -156,6 +155,48 @@ consumer
 //
 // Server
 //
+
+
+const app = express();
+
+
+app.use(function(req,res,next){
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader("Access-Control-Allow-Methods", "GET");
+  res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
+  next();
+})
+
+// returns the number of clicks per button in the db
+//'select row_to_json(t) from ( select button_id, count(button_id) from button_click group by button_id) t'
+app.get('/api/clickCount', (req, res, next) => {
+  const clickEventSql = 'SELECT button_id, COUNT(button_id) FROM button_click GROUP BY button_id';
+  pool.query(clickEventSql)
+      .then(pgResponse => {
+      console.log(pgResponse);
+      res.setHeader('Content-Type', 'application/json');
+      res.send(JSON.stringify(pgResponse.rows));
+    })
+    .catch(error =>{
+      console.error(error.stack);
+      res.code(500).send("There was a server error");
+    });
+})
+
+app.get('/api/clickHistory', (req, res, next) => {
+  const clickEventSql = 'SELECT date_trunc(\'day\', button_click.created_date) AS "Day" , count(*) AS "clicks" FROM button_click GROUP BY 1 ORDER BY 1';
+  pool.query(clickEventSql)
+      .then(pgResponse => {
+      console.log(pgResponse);
+      res.setHeader('Content-Type', 'application/json');
+      res.send(JSON.stringify(pgResponse.rows));
+    })
+    .catch(error =>{
+      console.error(error.stack);
+      res.code(500).send("There was a server error");
+    });
+})
 
 app.listen(PORT, function () {
   console.log(`Listening on port ${PORT}`);
