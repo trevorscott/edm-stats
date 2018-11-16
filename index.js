@@ -114,7 +114,7 @@ let productClicks = {}
 let pageLoads = 0;
 
 //save clicks and page loads ever hour
-setInterval(saveStatsToPostgres, 3600000);
+setInterval(saveStatsToPostgres, sslFlag ? 3600000 : 5000);
 
 function saveStatsToPostgres() {
   let newClicks = false;
