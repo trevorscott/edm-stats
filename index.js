@@ -4,6 +4,7 @@ const express    = require('express');
 const URL        = require('url');
 const fs         = require('fs');
 const { Pool, Client } = require('pg');
+const format = require('pg-format');
 const parseDbUrl       = require('parse-database-url');
 
 const PORT       = process.env.PORT || 5002;
@@ -99,6 +100,68 @@ consumer.connect({}, (err, data) => {
   }
 });
 
+// consumer interval
+// commit messages once an hour
+
+
+
+// button_id: # of clicks,
+// date: json.event_timestamp
+let productClicks = {}
+
+// count:0,
+// date: json.event_timestamp
+let pageLoads = 0;
+
+//save clicks and page loads ever hour
+setInterval(saveStatsToPostgres, 3600000);
+
+function saveStatsToPostgres() {
+  let newClicks = false;
+  let newLoads = false;
+
+  var date = new Date();
+
+  let clickValues = Object.keys(productClicks).map(key => {
+    return [key,productClicks[key]]
+  });
+  let clickEventQuery = format('INSERT INTO button_click(button_id,clicks) VALUES %L', clickValues);
+  console.log(clickEventQuery);
+  if (clickValues.length > 0) newClicks = true;
+
+  const pageLoadValues = [pageLoads, date.getTime()];
+  let loadEventQuery = 'INSERT INTO page_load(loads,created_date) VALUES($1, to_timestamp($2 / 1000.0))';
+  if (pageLoads > 0) newLoads = true;
+  if (!newClicks && !newLoads) {
+    console.log('no new events to record!')
+  } else {
+    (async () => {
+      const client = await pool.connect()
+      try {
+        await client.query('BEGIN')
+        let rows;
+        let rows2;
+        if (newClicks){
+          rows = await client.query(clickEventQuery)
+        } 
+        if (newLoads) {
+          rows2 = await client.query(loadEventQuery, pageLoadValues)
+        } 
+        await client.query('COMMIT')
+      } catch (e) {
+        await client.query('ROLLBACK')
+        throw e
+      } finally {
+        client.release()
+        console.log('successfully saved data to postgres. committing new offset.')
+        consumer.commit();
+        productClicks = {};
+        pageLoads = 0;
+      }
+    })().catch(e => console.error(e.stack))
+  }
+}
+
 consumer
   .on('ready', (id, metadata) => {
     console.log(kafkaTopics);
@@ -114,32 +177,15 @@ consumer
     const message = data.value.toString()
     const json = JSON.parse(message);
     //track stats here
-    // 1. how many times has the page been loaded?
-    // 1. how many times has a button been clicked?
-    // 1. what are the most popular buttons?
     switch (json.topic) {
     	case 'edm-ui-click':
-			const clickEventSql = 'INSERT INTO button_click(uuid,button_id,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
-			const clickEventValues = [json.uuid,json.properties.button_id,json.event_timestamp];
-			pool.query(clickEventSql, clickEventValues)
-    		  .then(pgResponse => {
-			    console.log("button click event inserted");
-			    consumer.commitMessage(data);
-			  })
-			  .catch(error =>{
-			    console.error(error.stack);
-			  });
+			  // json.uuid,json.properties.button_id,json.event_timestamp
+        if (json.properties.button_id in productClicks) productClicks[json.properties.button_id]++;
+        else productClicks[json.properties.button_id] = 1;
 			  break;
-		case 'edm-ui-pageload':
-			const loadEventSql = 'INSERT INTO page_load(uuid,user_agent,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
-			const loadEventValues = [json.uuid,json.properties.user_agent,json.event_timestamp];
-			pool.query(loadEventSql, loadEventValues)
-			  .then(pgResponse => {
-			    consumer.commitMessage(data);
-			  })
-			  .catch(error =>{
-			    console.error(error.stack)
-			  }); 
+		  case 'edm-ui-pageload':
+			  // json.uuid,json.properties.user_agent,json.event_timestamp
+        pageLoads+=1;
 			  break;
     }
   })
@@ -171,10 +217,10 @@ app.use(function(req,res,next){
 // returns the number of clicks per button in the db
 //'select row_to_json(t) from ( select button_id, count(button_id) from button_click group by button_id) t'
 app.get('/api/clickCount', (req, res, next) => {
-  const clickEventSql = 'SELECT button_id, COUNT(button_id) FROM button_click GROUP BY button_id';
+  const clickEventSql = 'SELECT button_id, SUM(clicks) FROM button_click GROUP BY button_id';
   pool.query(clickEventSql)
       .then(pgResponse => {
-      console.log(pgResponse);
+      // console.log(pgResponse);
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify(pgResponse.rows));
     })
@@ -185,10 +231,10 @@ app.get('/api/clickCount', (req, res, next) => {
 })
 
 app.get('/api/clickHistory', (req, res, next) => {
-  const clickEventSql = 'SELECT date_trunc(\'day\', button_click.created_date) AS "Day" , count(*) AS "clicks" FROM button_click GROUP BY 1 ORDER BY 1';
+  const clickEventSql = 'SELECT date_trunc(\'day\', button_click.created_date) AS "Day" , SUM(clicks) AS "clicks" FROM button_click GROUP BY 1 ORDER BY 1';
   pool.query(clickEventSql)
       .then(pgResponse => {
-      console.log(pgResponse);
+      // console.log(pgResponse);
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify(pgResponse.rows));
     })
@@ -203,3 +249,24 @@ app.listen(PORT, function () {
 });
 
 
+  // insert page load
+  // const loadEventSql = 'INSERT INTO page_load(uuid,user_agent,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
+  // const loadEventValues = [json.uuid,json.properties.user_agent,json.event_timestamp];
+  // pool.query(loadEventSql, loadEventValues)
+  //   .then(pgResponse => {
+  //     consumer.commitMessage(data);
+  //   })
+  //   .catch(error =>{
+  //     console.error(error.stack)
+  //   });
+
+  // const clickEventSql = 'INSERT INTO button_click(uuid,button_id,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
+  // const clickEventValues = [json.uuid,json.properties.button_id,json.event_timestamp];
+  // pool.query(clickEventSql, clickEventValues)
+  //     .then(pgResponse => {
+  //     console.log("button click event inserted");
+  //     consumer.commitMessage(data);
+  //   })
+  //   .catch(error =>{
+  //     console.error(error.stack);
+  //   });

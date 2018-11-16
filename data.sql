@@ -13,3 +13,7 @@ CREATE TABLE page_load (
 	created_date TIMESTAMP NOT NULL
 );
 
+ALTER TABLE button_click ADD COLUMN clicks integer;
+ALTER TABLE page_load ADD COLUMN loads integer;
+
+ALTER TABLE button_click ALTER COLUMN created_date SET DEFAULT now();
