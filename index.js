@@ -100,17 +100,8 @@ consumer.connect({}, (err, data) => {
   }
 });
 
-// consumer interval
-// commit messages once an hour
 
-
-
-// button_id: # of clicks,
-// date: json.event_timestamp
 let productClicks = {}
-
-// count:0,
-// date: json.event_timestamp
 let pageLoads = 0;
 
 //save clicks and page loads ever hour
@@ -125,6 +116,7 @@ function saveStatsToPostgres() {
   let clickValues = Object.keys(productClicks).map(key => {
     return [key,productClicks[key]]
   });
+
   let clickEventQuery = format('INSERT INTO button_click(button_id,clicks) VALUES %L', clickValues);
   console.log(clickEventQuery);
   if (clickValues.length > 0) newClicks = true;
@@ -132,6 +124,7 @@ function saveStatsToPostgres() {
   const pageLoadValues = [pageLoads, date.getTime()];
   let loadEventQuery = 'INSERT INTO page_load(loads,created_date) VALUES($1, to_timestamp($2 / 1000.0))';
   if (pageLoads > 0) newLoads = true;
+  
   if (!newClicks && !newLoads) {
     console.log('no new events to record!')
   } else {
@@ -176,15 +169,12 @@ consumer
   .on('data', function(data) {
     const message = data.value.toString()
     const json = JSON.parse(message);
-    //track stats here
     switch (json.topic) {
     	case 'edm-ui-click':
-			  // json.uuid,json.properties.button_id,json.event_timestamp
         if (json.properties.button_id in productClicks) productClicks[json.properties.button_id]++;
         else productClicks[json.properties.button_id] = 1;
 			  break;
 		  case 'edm-ui-pageload':
-			  // json.uuid,json.properties.user_agent,json.event_timestamp
         pageLoads+=1;
 			  break;
     }
@@ -201,8 +191,6 @@ consumer
 //
 // Server
 //
-
-
 const app = express();
 
 
@@ -223,10 +211,10 @@ app.get('/api/clickCount', (req, res, next) => {
       // console.log(pgResponse);
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify(pgResponse.rows));
+      next();
     })
     .catch(error =>{
-      console.error(error.stack);
-      res.code(500).send("There was a server error");
+      next(error);
     });
 })
 
@@ -237,16 +225,23 @@ app.get('/api/clickHistory', (req, res, next) => {
       // console.log(pgResponse);
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify(pgResponse.rows));
+      next();
     })
     .catch(error =>{
-      console.error(error.stack);
-      res.code(500).send("There was a server error");
+      next(error);
     });
+})
+
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send('Error calling ')
 })
 
 app.listen(PORT, function () {
   console.log(`Listening on port ${PORT}`);
 });
+
+
 
 
   // insert page load
