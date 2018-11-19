@@ -49,7 +49,7 @@ You will need information from your heroku kafka cluster. Run `heroku config` to
 ```bash
 export KAFKA_PREFIX=<your kafka prefix>
 export KAFKA_URL=<your broker urls> \
-export KAFKA_TOPIC='edm-ui-click,edm-ui-pageload'
+export KAFKA_TOPIC='edm-ui-click-local,edm-ui-pageload-local'
 export KAFKA_TRUSTED_CERT="multi
 line 
 cert"
