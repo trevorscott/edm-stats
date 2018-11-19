@@ -33,11 +33,6 @@ export CPPFLAGS=-I/usr/local/opt/openssl/include
 export LDFLAGS=-L/usr/local/opt/openssl/lib
 ```
 
-Now you can npm install:
-```
-npm install
-```
-
 Set the consumer group:
 
 ```bash
@@ -96,6 +91,7 @@ psql -U username -d edm_test -f data.sql
 ### Run Locally
 
 ```
+npm install
 npm start
 ```
 
