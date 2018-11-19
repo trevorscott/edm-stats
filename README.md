@@ -59,3 +59,21 @@ Run the .profile script to write ssl config to files:
 npm start
 ```
 
+## Custom Kafka Topic Names
+
+If you deviated from the default kafka topic names for this demo you will need to set some extra config:
+
+Production:
+
+```bash
+heroku config:set CLICK_KAFKA_TOPIC=<custom-clicks-kafka-topic-name>
+heroku config:set PAGE_LOAD_KAFKA_TOPIC=<custom-pageload-kafka-topic-name>
+```
+
+local:
+
+```bash
+export CLICK_KAFKA_TOPIC=<custom-clicks-kafka-topic-name-local>
+export PAGE_LOAD_KAFKA_TOPIC=<custom-pageload-kafka-topic-name-local>
+```
+
