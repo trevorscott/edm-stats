@@ -38,6 +38,12 @@ Now you can npm install:
 npm install
 ```
 
+Set the consumer group:
+
+```bash
+export KAFKA_CONSUMER_GROUP=edm-consumer-group-2-local
+```
+
 You will need information from your heroku kafka cluster. Run `heroku config` to obtain that information and set the following information:
 
 ```bash
