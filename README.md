@@ -18,6 +18,12 @@ heroku addons:attach <your kafka broker name>
 heroku addons:create heroku-postgresql:hobby-dev
 ```
 
+## Initialize the database
+
+```
+heroku pg:psql -f data.sql
+```
+
 ## local setup
 
 In order to install `node-rdkafka` you must set a few local enviornment variables:
@@ -55,6 +61,18 @@ Run the .profile script to write ssl config to files:
 ```
 ./.profile
 ```
+
+### Postgres
+
+You will need to create a PostgreSQL database for you local dev purposes. See the heroku dev center article for more information on how to [set up PostgreSQL locally](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup). 
+
+Once you have created your database locally run the `data.sql` file with `psql`:
+
+```
+psql -U username -d edmDatabase -a -f data.sql
+```
+
+### Run Locally
 
 ```
 npm start
