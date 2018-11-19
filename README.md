@@ -62,7 +62,7 @@ Run the .profile script to write ssl config to files:
 ./.profile
 ```
 
-### Postgres
+### Postgres Setup
 
 You will need to create a PostgreSQL database for you local dev purposes. See the heroku dev center article for more information on how to [set up PostgreSQL locally](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup). 
 
@@ -70,6 +70,12 @@ Once you have created your database locally run the `data.sql` file with `psql`:
 
 ```bash
 psql -U username -d edmDatabase -a -f data.sql
+```
+
+You will also need to set the database URL:
+
+```bash 
+export DATABASE_URL=postgresql://username@localhost/edm_db
 ```
 
 ### Run Locally
