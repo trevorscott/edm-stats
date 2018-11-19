@@ -13,7 +13,7 @@ This app is part of a group of apps that all must be deployed in a particular or
 
 ```
 git clone git@github.com:trevorscott/edm-stats.git && cd edm-stats
-heroku create $appname
+heroku create $appName
 heroku addons:attach <your kafka broker name>
 heroku addons:create heroku-postgresql:hobby-dev
 ```
