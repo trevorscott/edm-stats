@@ -1,14 +1,20 @@
 # edm-stats
 Record stats about kafka messages.
 
+This app is part of a group of apps that all must be deployed in a particular order:
+
+1. [edm-relay](https://github.com/trevorscott/edm-relay)
+1. [edm-stream](https://github.com/trevorscott/edm-stream)
+1. [edm-stats](https://github.com/trevorscott/edm-stats)
+1. [edm-ui](https://github.com/trevorscott/edm-ui)
+1. [edm-dashboard](https://github.com/trevorscott/edm-dashboard)
+
 ## Setup
 
 ```
 git clone git@github.com:trevorscott/edm-stats.git && cd edm-stats
 heroku create $appname
 heroku addons:attach <your kafka broker name>
-heroku kafka:consumer-groups:create consumer-group-2
-heroku config:set KAFKA_CONSUMER_GROUP=consumer-group-2
 ```
 
 ## local setup
@@ -25,18 +31,12 @@ Now you can npm install:
 npm install
 ```
 
-You will want to create a consumer group for this app:
-```
-heroku kafka:consumer-groups:create consumer-group-2-local
-export KAFKA_CONSUMER_GROUP=consumer-group-2-local
-```
-
 You will need information from your heroku kafka cluster. Run `heroku config` to obtain that information and set the following information:
 
 ```
 export KAFKA_PREFIX=<your kafka prefix>
 export KAFKA_URL=<your broker urls> \
-export KAFKA_TOPIC='topic1,topic2'
+export KAFKA_TOPIC='edm-ui-click,edm-ui-pageload'
 export KAFKA_TRUSTED_CERT="multi
 line 
 cert"
