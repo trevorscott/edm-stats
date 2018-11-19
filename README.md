@@ -33,10 +33,11 @@ export CPPFLAGS=-I/usr/local/opt/openssl/include
 export LDFLAGS=-L/usr/local/opt/openssl/lib
 ```
 
-Set the consumer group:
+Set the consumer group and kafka topics:
 
 ```bash
 export KAFKA_CONSUMER_GROUP=edm-consumer-group-2-local
+export KAFKA_TOPIC='edm-ui-click-local,edm-ui-pageload-local'
 ```
 
 You will need information from your heroku kafka cluster. Run `heroku config` to obtain that information and set the following information:
@@ -44,7 +45,6 @@ You will need information from your heroku kafka cluster. Run `heroku config` to
 ```bash
 export KAFKA_PREFIX=<your kafka prefix>
 export KAFKA_URL=<your broker urls> \
-export KAFKA_TOPIC='edm-ui-click-local,edm-ui-pageload-local'
 export KAFKA_TRUSTED_CERT="multi
 line 
 cert"
