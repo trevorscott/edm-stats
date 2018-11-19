@@ -28,7 +28,7 @@ heroku pg:psql -f data.sql
 
 In order to install `node-rdkafka` you must set a few local enviornment variables:
 
-```
+```bash
 export CPPFLAGS=-I/usr/local/opt/openssl/include
 export LDFLAGS=-L/usr/local/opt/openssl/lib
 ```
@@ -40,7 +40,7 @@ npm install
 
 You will need information from your heroku kafka cluster. Run `heroku config` to obtain that information and set the following information:
 
-```
+```bash
 export KAFKA_PREFIX=<your kafka prefix>
 export KAFKA_URL=<your broker urls> \
 export KAFKA_TOPIC='edm-ui-click,edm-ui-pageload'
@@ -68,7 +68,7 @@ You will need to create a PostgreSQL database for you local dev purposes. See th
 
 Once you have created your database locally run the `data.sql` file with `psql`:
 
-```
+```bash
 psql -U username -d edmDatabase -a -f data.sql
 ```
 
