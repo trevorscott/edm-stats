@@ -11,6 +11,8 @@ const PORT       = process.env.PORT || 5002;
 const nodeEnv    = process.env.NODE_ENV || 'development';
 const sslFlag = (nodeEnv == "development") ? false : true;
 
+const { CLICK_KAFKA_TOPIC, PAGE_LOAD_KAFKA_TOPIC } = require('./kafka-topics.js')
+
 
 const currentPath  = process.cwd();
 
@@ -104,7 +106,7 @@ consumer.connect({}, (err, data) => {
 let productClicks = {}
 let pageLoads = 0;
 
-//save clicks and page loads ever hour
+//save clicks and page loads every hour, or every 5 seconds locally
 setInterval(saveStatsToPostgres, sslFlag ? 3600000 : 5000);
 
 function saveStatsToPostgres() {
@@ -170,11 +172,11 @@ consumer
     const message = data.value.toString()
     const json = JSON.parse(message);
     switch (json.topic) {
-    	case 'edm-ui-click':
+    	case CLICK_KAFKA_TOPIC:
         if (json.properties.button_id in productClicks) productClicks[json.properties.button_id]++;
         else productClicks[json.properties.button_id] = 1;
 			  break;
-		  case 'edm-ui-pageload':
+		  case PAGE_LOAD_KAFKA_TOPIC:
         pageLoads+=1;
 			  break;
     }
@@ -240,28 +242,3 @@ app.use(function (err, req, res, next) {
 app.listen(PORT, function () {
   console.log(`Listening on port ${PORT}`);
 });
-
-
-
-
-  // insert page load
-  // const loadEventSql = 'INSERT INTO page_load(uuid,user_agent,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
-  // const loadEventValues = [json.uuid,json.properties.user_agent,json.event_timestamp];
-  // pool.query(loadEventSql, loadEventValues)
-  //   .then(pgResponse => {
-  //     consumer.commitMessage(data);
-  //   })
-  //   .catch(error =>{
-  //     console.error(error.stack)
-  //   });
-
-  // const clickEventSql = 'INSERT INTO button_click(uuid,button_id,created_date) VALUES($1, $2, to_timestamp($3 / 1000.0))';
-  // const clickEventValues = [json.uuid,json.properties.button_id,json.event_timestamp];
-  // pool.query(clickEventSql, clickEventValues)
-  //     .then(pgResponse => {
-  //     console.log("button click event inserted");
-  //     consumer.commitMessage(data);
-  //   })
-  //   .catch(error =>{
-  //     console.error(error.stack);
-  //   });
