@@ -38,12 +38,18 @@ Now you can npm install:
 npm install
 ```
 
+Set the consumer group:
+
+```bash
+export KAFKA_CONSUMER_GROUP=edm-consumer-group-2-local
+```
+
 You will need information from your heroku kafka cluster. Run `heroku config` to obtain that information and set the following information:
 
 ```bash
 export KAFKA_PREFIX=<your kafka prefix>
 export KAFKA_URL=<your broker urls> \
-export KAFKA_TOPIC='edm-ui-click,edm-ui-pageload'
+export KAFKA_TOPIC='edm-ui-click-local,edm-ui-pageload-local'
 export KAFKA_TRUSTED_CERT="multi
 line 
 cert"
@@ -62,14 +68,29 @@ Run the .profile script to write ssl config to files:
 ./.profile
 ```
 
-### Postgres
+### Postgres Setup
 
-You will need to create a PostgreSQL database for you local dev purposes. See the heroku dev center article for more information on how to [set up PostgreSQL locally](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup). 
+You will need to create a PostgreSQL database for you local dev purposes.
+
+e.g.
+
+```
+psql
+username=# create database edm_test;
+CREATE DATABASE
+username=# \q
+```
+
+Then set the DATABASE_URL
+
+```bash 
+export DATABASE_URL=postgresql://username@localhost/edm_db
+```
 
 Once you have created your database locally run the `data.sql` file with `psql`:
 
 ```bash
-psql -U username -d edmDatabase -a -f data.sql
+psql -U username -d edm_test -f data.sql
 ```
 
 ### Run Locally
