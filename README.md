@@ -18,12 +18,19 @@ git clone git@github.com:trevorscott/edm-stats.git && cd edm-stats
 heroku create $appName
 heroku addons:attach <your kafka broker name>
 heroku addons:create heroku-postgresql:hobby-dev
+heroku config:set KAFKA_CONSUMER_GROUP=edm-consumer-group-2 KAFKA_TOPIC='edm-ui-click,edm-ui-pageload'
 ```
 
 ## Initialize the database
 
 ```
 heroku pg:psql -f data.sql
+```
+## Deploy & Scale
+
+```
+git push heroku master
+heroku ps:scale web=1:standard-1x
 ```
 
 ## local setup
