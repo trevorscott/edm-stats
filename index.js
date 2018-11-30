@@ -108,8 +108,8 @@ consumer.connect({}, (err, data) => {
 let productClicks = {}
 let pageLoads = 0;
 
-//save clicks and page loads every hour, or every 5 seconds locally
-setInterval(saveStatsToPostgres, sslFlag ? 3600000 : 5000);
+//save clicks and page loads every 60 seconds, or every 5 seconds locally
+setInterval(saveStatsToPostgres, sslFlag ? 60000 : 5000);
 
 function saveStatsToPostgres() {
   let newClicks = false;
