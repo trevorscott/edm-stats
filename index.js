@@ -173,6 +173,7 @@ consumer
   .on('data', function(data) {
     const message = data.value.toString()
     const json = JSON.parse(message);
+    console.log(data);
     switch (json.topic) {
     	case CLICK_KAFKA_TOPIC:
         if (json.properties.button_id in productClicks) productClicks[json.properties.button_id]++;
